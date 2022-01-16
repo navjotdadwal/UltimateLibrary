@@ -1,61 +1,48 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-const int N = 3e5 + 9, mod = 998244353;
+const int N = 3e5 + 9;
 
-int n, m;
-vector<pair<int, int>> g[N], r[N];
-vector<long long> dijkstra(int s, int t, vector<int> &cnt) {
-  const long long inf = 1e18;
-  priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> q;
-  vector<long long> d(n + 1, inf);
-  vector<bool> vis(n + 1, 0);
-  q.push({0, s});
+struct st {
+  int a, b, cost;
+} e[N];
+const int INF = 2e9;
+int32_t main() {
+  int n, m;
+  cin >> n >> m;
+  for(int i = 0; i < m; i++) cin >> e[i].a >> e[i].b >> e[i].cost;
+  int s;
+  cin >> s;//is there any negative cycle which is reachable from s?
+  vector<int> d (n, INF);//for finding any cycle(not necessarily from s) set d[i] = 0 for all i
   d[s] = 0;
-  cnt.resize(n + 1, 0); // number of shortest paths
-  cnt[s] = 1;
-  while(!q.empty()) {
-    auto x = q.top();
-    q.pop();
-    int u = x.second;
-    if(vis[u]) continue;
-    vis[u] = 1;
-    for(auto y: g[u]) {
-      int v = y.first;
-      long long w = y.second;
-      if(d[u] + w < d[v]) {
-        d[v] = d[u] + w;
-        q.push({d[v], v});
-        cnt[v] = cnt[u];
-      } else if(d[u] + w == d[v]) cnt[v] = (cnt[v] + cnt[u]) % mod;
+  vector<int> p (n, -1);
+  int x;
+  for (int i=0; i<n; ++i) {
+    x = -1;
+    for (int j=0; j<m; ++j) {
+      if (d[e[j].a] < INF) {
+        if (d[e[j].b] > d[e[j].a] + e[j].cost) {
+          d[e[j].b] = max (-INF, d[e[j].a] + e[j].cost);//for overflow
+          p[e[j].b] = e[j].a;
+          x = e[j].b;
+        }
+      }
     }
   }
-  return d;
-}
+  if (x == -1) cout << "No negative cycle from "<<s;
+  else {
+    int y = x; //x can be on any cycle or reachable from some cycle
+    for (int i=0; i<n; ++i) y = p[y];
 
-int u[N], v[N], w[N];
-int32_t main() {
-  ios_base::sync_with_stdio(0);
-  cin.tie(0);
+    vector<int> path;
+    for (int cur=y; ; cur=p[cur]) {
+      path.push_back (cur);
+      if (cur == y && path.size() > 1) break;
+    }
+    reverse (path.begin(), path.end());
 
-  int s, t;
-  cin >> n >> m >> s >> t;
-  for(int i = 1; i <= m; i++) {
-    cin >> u[i] >> v[i] >> w[i];
-    g[u[i]].push_back({v[i], w[i]});
-    r[v[i]].push_back({u[i], w[i]});
-  }
-  vector<int> cnt1, cnt2;
-  auto d1 = dijkstra(s, t, cnt1);
-  auto d2 = dijkstra(t, s, cnt2);
-
-  long long ans = d1[t];
-  for(int i = 1; i <= m; i++) {
-    int x = u[i], y = v[i];
-    long long nw = d1[x] + w[i] + d2[y];
-    if(nw == ans && 1LL * cnt1[x] * cnt2[y] % mod == cnt1[t]) cout << "YES\n";
-    else if(nw - ans + 1 < w[i]) cout << "CAN " << nw - ans + 1 << '\n';
-    else cout << "NO\n";
+    cout << "Negative cycle: ";
+    for (int i=0; i<path.size(); ++i) cout << path[i] << ' ';
   }
   return 0;
 }
