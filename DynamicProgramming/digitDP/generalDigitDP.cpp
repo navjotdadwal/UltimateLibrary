@@ -4,7 +4,7 @@
  Id  : Matrix.code
  Task:  1205 - Palindromic Numbers
  Date:
-  
+ https://vjudge.net/problem/LightOJ-1205
  **************************
   
  */
